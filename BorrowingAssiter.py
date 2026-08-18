@@ -39,3 +39,18 @@ class Item:
         self.due_date = None
         self.is_available = True
         print(f"Item has been succesfully returned.")
+
+item1 = Item("EQ001", "Casio Calculator", "Calculator")
+
+print(item1.get_details())
+
+item1.borrow("Matthew", datetime.datetime(2026, 8, 25))
+
+print(item1.borrower)
+print(item1.borrow_date)
+print(item1.due_date)
+print(item1.is_available)
+
+item1.return_item()
+
+print(item1.is_available)
