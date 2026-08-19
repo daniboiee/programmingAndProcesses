@@ -47,13 +47,13 @@ items = []
 def clear_screen():
     print("\n" * 40)
 
-def pause():
+def pause():    # Only use in windows to reduce chance of having this happen twice
     input("\nPress Enter to continue...")
 
 def generate_id():
-    return f"EQ{len(items) + 1:03d}"
+    return f"EQ{len(items) + 1:03d}"    # :03d makes the number at least 3 digits, adding 0s if empty spaces
 
-def find_item():
+def find_item():    # Checks items[] and returns the item that has the input ID
     if len(items) == 0:
         print("There are currently no items.")
         return None
@@ -94,7 +94,30 @@ def add_item():
     pause()
 
 def edit_item():
-    print()
+    clear_screen()
+
+    print("EDIT ITEM\n")
+
+    item = find_item()
+
+    if item is None:
+        pause()
+        return
+
+    print(f"\nEditing: {item.name}")
+
+    new_name = input(f"New name (press Enter to keep '{item.name}'): ").strip()
+
+    new_category = input(f"New category (press Enter to keep '{item.category}'): ").strip()
+
+    if new_name != "":
+        item.name = new_name
+
+    if new_category != "":
+        item.category = new_category
+
+    print("\nItem successfully updated.")
+    pause()
     
 def delete_item():
     clear_screen()
