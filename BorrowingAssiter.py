@@ -62,7 +62,7 @@ def find_item():
     for item in items:
         print(item.get_details())
 
-    item_id = input("\nEnter the ID of the item: ").strip()
+    item_id = input("\nEnter the ID of the item: ").strip().upper()
 
     for item in items:
         if item.id == item_id:
@@ -73,16 +73,61 @@ def find_item():
 
 # Windows
 def add_item():
-    print()
+    clear_screen()
+
+    print("ADD ITEM\n")
+
+    name = input("Item name: ").strip()
+    category = input("Category: ").strip()
+
+    if name == "" or category == "":
+        print("\nItem name and category cannot be empty.")
+        pause()
+        return
+
+    item_id = generate_id()
+
+    new_item = Item(item_id, name, category)
+    items.append(new_item)
+
+    print(f"\nItem successfully added with ID {item_id}.")
+    pause()
 
 def edit_item():
     print()
     
 def delete_item():
-    print()
+    clear_screen()
+
+    print("DELETE ITEM\n")
+
+    item = find_item()
+
+    if item is None:
+        pause()
+        return
+
+    if not item.is_available:
+        print("\nThis item is currently borrowed.")
+        print("It cannot be deleted until it has been returned.")
+        pause()
+        return
+
+    confirmation = input(
+        f"\nAre you sure you want to delete {item.name}? (y/n): "
+    ).strip().lower()
+
+    if confirmation == "y":
+        items.remove(item)
+        print("\nItem successfully deleted.")
+    else:
+        print("\nDeletion cancelled.")
+
+    pause()
 
 def main():
-    while choice != 4:
+    choice = None
+    while choice != "4":
         clear_screen()
 
         print("CLASSROOM EQUIPMENT TRACKER\n")
@@ -95,13 +140,18 @@ def main():
 
         if choice == "1":
             add_item()
+            continue
 
         elif choice == "2":
             edit_item()
+            continue
 
         elif choice == "3":
             delete_item()
+            continue
 
         elif choice != "4":
             print("Invalid option.")
             pause()
+
+main()
