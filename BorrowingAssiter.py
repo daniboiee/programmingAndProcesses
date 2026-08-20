@@ -52,8 +52,16 @@ def clear_screen():
 def pause():    # Only use in windows to reduce chance of having this happen twice
     input("\nPress Enter to continue...")
 
-def generate_id():
-    return f"EQ{len(items) + 1:03d}"    # :03d makes the number at least 3 digits, adding 0s if empty spaces
+def generate_id():  # Fixed previous error but may be a bit slow for massive databases
+    number = 1      # Future version will not reuse deleted item IDs, but I need JSON for that
+
+    while True:
+        item_id = f"EQ{number:03d}" # :03d makes the number at least 3 digits, adding 0s if empty spaces
+
+        if not any(item.id == item_id for item in items):
+            return item_id
+
+        number += 1
 
 def find_item():    # Checks items[] and returns the item that has the input ID
     if len(items) == 0:
@@ -87,7 +95,7 @@ def add_item(): # Adds items to items[]
         pause()
         return
 
-    item_id = generate_id()     # Known error: duplicate IDs are possible
+    item_id = generate_id()
 
     new_item = Item(item_id, name, category)    # Creates item based on input details
     items.append(new_item)      # Adds item to items[]
