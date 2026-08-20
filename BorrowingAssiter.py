@@ -1,7 +1,7 @@
 import datetime
 
 # Class that holds all items and all borrowing information for items
-# Example usage: item1 = Item("EQ001", "Casio FX9860GII Graphic Calculator", "Calculator")
+# Example usage: item1 = Item("EQ001", "FX9860GII Calculator", "Calculator")
 class Item:
     def __init__(self, id, name, category):
         self.id = id
@@ -72,7 +72,7 @@ def find_item():    # Checks items[] and returns the item that has the input ID
     return None
 
 # Windows
-def add_item():
+def add_item(): # Adds items to items[]
     clear_screen()
 
     print("ADD ITEM\n")
@@ -80,20 +80,20 @@ def add_item():
     name = input("Item name: ").strip()
     category = input("Category: ").strip()
 
-    if name == "" or category == "":
+    if name == "" or category == "":    # Might be better to check name and category seperately when they are input
         print("\nItem name and category cannot be empty.")
         pause()
         return
 
-    item_id = generate_id()
+    item_id = generate_id()     # Known error: duplicate IDs are possible
 
-    new_item = Item(item_id, name, category)
-    items.append(new_item)
+    new_item = Item(item_id, name, category)    # Creates item based on input details
+    items.append(new_item)      # Adds item to items[]
 
     print(f"\nItem successfully added with ID {item_id}.")
     pause()
 
-def edit_item():
+def edit_item():    # Changes details about items
     clear_screen()
 
     print("EDIT ITEM\n")
@@ -110,7 +110,7 @@ def edit_item():
 
     new_category = input(f"New category (press Enter to keep '{item.category}'): ").strip()
 
-    if new_name != "":
+    if new_name != "":      # In other words, if they just pressed enter, don't change the aspects
         item.name = new_name
 
     if new_category != "":
@@ -119,7 +119,7 @@ def edit_item():
     print("\nItem successfully updated.")
     pause()
     
-def delete_item():
+def delete_item():  # Removes items from items[]
     clear_screen()
 
     print("DELETE ITEM\n")
@@ -130,7 +130,8 @@ def delete_item():
         pause()
         return
 
-    if not item.is_available:
+    # To avoid problems with loans pointing to non-existent items in the future
+    if not item.is_available:   # Also helps user experience, loans are not forgotten
         print("\nThis item is currently borrowed.")
         print("It cannot be deleted until it has been returned.")
         pause() 
@@ -146,20 +147,47 @@ def delete_item():
 
     pause()
 
-def borrow_item():
+def borrow_item():  # Creates details about loans of items
     clear_screen()
 
     print("BORROW ITEM\n")
 
+    days = 0    # Initialises a value for the while loop
     item = find_item()
 
     if item is None:
         pause()
         return
 
+    if not item.is_available:
+        print("\nThis item is already borrowed.")
+        pause()
+        return
+
+    borrower = input("Borrower's name: ").strip()
+
+    if borrower == "":
+        print("\nBorrower's name cannot be empty.")
+        pause()
+        return
+
+    while days <= 0:    # Keep asking for a day until a proper number is input
+        try:
+            days = int(input("Number of days until due: "))
+
+            if days <= 0:
+                print("Please enter a positive number.")
+
+        except ValueError:
+            print("Please enter a whole number.")
+
+    due_date = datetime.datetime.now() + datetime.timedelta(days=days)
+
+    item.borrow(borrower, due_date)
+    
     pause()
 
-def return_item():
+def return_item():  # Removes details about loans of items (functionally)
     clear_screen()
 
     print("RETURN ITEM\n")
