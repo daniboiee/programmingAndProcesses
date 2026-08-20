@@ -147,15 +147,37 @@ def delete_item():
     pause()
 
 def borrow_item():
-    print()
+    clear_screen()
+
+    print("BORROW ITEM\n")
+
+    item = find_item()
+
+    if item is None:
+        pause()
+        return
+
+    pause()
 
 def return_item():
-    print()
+    clear_screen()
+
+    print("RETURN ITEM\n")
+
+    item = find_item()
+
+    if item is None:
+        pause()
+        return
+
+    item.return_item()
+
+    pause()
 
 
 def main():
     choice = None
-    while choice != "6":
+    while choice != "7":
         clear_screen()
 
         print("CLASSROOM EQUIPMENT TRACKER\n")
@@ -164,7 +186,8 @@ def main():
         print("3. Delete item")
         print("4. Borrow item")
         print("5. Return item")
-        print("6. Exit\n")
+        print("6. Save (not working)")
+        print("7. Exit\n")
 
         choice = input("Select an option: ").strip()
 
@@ -183,7 +206,7 @@ def main():
         elif choice == "5":
             return_item()
             continue
-        elif choice != "6":
+        elif choice != "7":
             print("Invalid option.")
             pause()
 
