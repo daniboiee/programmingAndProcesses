@@ -1,3 +1,5 @@
+# Iteration 2
+
 import datetime
 
 # Class that holds all items and all borrowing information for items
@@ -26,7 +28,7 @@ class Item:
         self.borrow_date = datetime.datetime.now()
         self.due_date = due_date
         self.is_available = False
-        print(f"Item has been succesfully borrowed by {borrower}, and will be due on {due_date}.")
+        print(f"Item has been successfully borrowed by {borrower}, and will be due on {due_date}.")
 
     # Example usage: item1.return_item()
     def return_item(self):
@@ -38,7 +40,7 @@ class Item:
         self.borrow_date = None
         self.due_date = None
         self.is_available = True
-        print(f"Item has been succesfully returned.")
+        print(f"Item has been successfully returned.")
 
 # Containers for items
 items = []
@@ -80,7 +82,7 @@ def add_item(): # Adds items to items[]
     name = input("Item name: ").strip()
     category = input("Category: ").strip()
 
-    if name == "" or category == "":    # Might be better to check name and category seperately when they are input
+    if name == "" or category == "":    # Might be better to check name and category separately when they are input
         print("\nItem name and category cannot be empty.")
         pause()
         return
