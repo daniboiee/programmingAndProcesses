@@ -133,12 +133,10 @@ def delete_item():
     if not item.is_available:
         print("\nThis item is currently borrowed.")
         print("It cannot be deleted until it has been returned.")
-        pause()
+        pause() 
         return
 
-    confirmation = input(
-        f"\nAre you sure you want to delete {item.name}? (y/n): "
-    ).strip().lower()
+    confirmation = input(f"\nAre you sure you want to delete {item.name}? (y/n): ").strip().lower()
 
     if confirmation == "y":
         items.remove(item)
@@ -148,32 +146,44 @@ def delete_item():
 
     pause()
 
+def borrow_item():
+    print()
+
+def return_item():
+    print()
+
+
 def main():
     choice = None
-    while choice != "4":
+    while choice != "6":
         clear_screen()
 
         print("CLASSROOM EQUIPMENT TRACKER\n")
         print("1. Add item")
         print("2. Edit item")
         print("3. Delete item")
-        print("4. Exit\n")
+        print("4. Borrow item")
+        print("5. Return item")
+        print("6. Exit\n")
 
         choice = input("Select an option: ").strip()
 
         if choice == "1":
             add_item()
             continue
-
         elif choice == "2":
             edit_item()
             continue
-
         elif choice == "3":
             delete_item()
             continue
-
-        elif choice != "4":
+        elif choice == "4":
+            borrow_item()
+            continue
+        elif choice == "5":
+            return_item()
+            continue
+        elif choice != "6":
             print("Invalid option.")
             pause()
 
