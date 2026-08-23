@@ -2,57 +2,64 @@
 
 import datetime
 
-# Class that holds all items and all borrowing information for items
+# Class that holds information about an item
 # Example usage: item1 = Item("EQ001", "FX9860GII Calculator", "Calculator")
 class Item:
     def __init__(self, id, name, category):
         self.id = id
         self.name = name
         self.category = category
-        self.borrower = None
-        self.borrow_date = None
-        self.due_date = None
-        self.is_available = True
 
     # Example usage: print(item1.get_details())
     def get_details(self):
         return f"{self.id}: {self.name} ({self.category})"
 
-    # Example usage: item1.borrow("James", datetime.datetime(2026, 8, 18))
-    def borrow(self, borrower, due_date):
-        if not self.is_available:
-            print("This item is already borrowed.")
-            return
+    def find_active_loan(self, loans): # Finds the current loan for an item
+        for loan in loans:
+            if loan.item == self and loan.return_date is None:
+                return loan
 
+        return None
+
+# Class that holds information about one loan
+# Example usage: loan1 = Loan(item1, "James", datetime.datetime.now(), datetime.datetime(2026, 8, 31))
+class Loan:
+    def __init__(self, item, borrower, borrow_date, due_date):
+        self.item = item
         self.borrower = borrower
-        self.borrow_date = datetime.datetime.now()
+        self.borrow_date = borrow_date
         self.due_date = due_date
-        self.is_available = False
-        print(f"Item has been successfully borrowed by {borrower}, and will be due on {due_date}.")
+        self.return_date = None
+
+    # Example usage: loan1.get_details()
+    def get_details(self):
+        return (
+            f"{self.item.name} borrowed by {self.borrower}, "
+            f"due {self.due_date.strftime('%d/%m/%Y')}"
+        )
 
     # Example usage: item1.return_item()
     def return_item(self):
-        if self.is_available:
-            print("This item is not currently borrowed.")
-            return
+        if self.return_date is not None:
+            print("This loan has already been returned.")
+            return False
 
-        self.borrower = None
-        self.borrow_date = None
-        self.due_date = None
-        self.is_available = True
-        print(f"Item has been successfully returned.")
+        self.return_date = datetime.datetime.now()
+        print("The loan has been successfully returned.")
+        return True
 
-# Containers for items
+# Containers for items and loans
 items = []
+loans = []
 
 # General utility functions
 def clear_screen():
     print("\n" * 40)
 
-def pause():    # Only use in windows to reduce chance of having this happen twice
+def pause():    # Only use in windows/frames to reduce chance of having this happen twice
     input("\nPress Enter to continue...")
 
-def generate_id():  # Fixed previous error but may be a bit slow for massive databases
+def generate_id():  # Finds the first unused ID
     number = 1      # Future version will not reuse deleted item IDs, but I need JSON for that
 
     while True:
@@ -80,6 +87,7 @@ def find_item():    # Checks items[] and returns the item that has the input ID
 
     print("No item with that ID was found.")
     return None
+
 
 # Windows
 def add_item(): # Adds items to items[]
@@ -157,7 +165,7 @@ def delete_item():  # Removes items from items[]
 
     pause()
 
-def borrow_item():  # Creates details about loans of items
+def borrow_item():
     clear_screen()
 
     print("BORROW ITEM\n")
@@ -169,7 +177,8 @@ def borrow_item():  # Creates details about loans of items
         pause()
         return
 
-    if not item.is_available:
+    # Check whether this item already has an active loan
+    if item.find_active_loan(loans) is not None:
         print("\nThis item is already borrowed.")
         pause()
         return
@@ -181,23 +190,32 @@ def borrow_item():  # Creates details about loans of items
         pause()
         return
 
-    while days <= 0:    # Keep asking for a day until a proper number is input
+    while days > 0:    # Keep asking for a day until a proper number is input
         try:
             days = int(input("Number of days until due: "))
 
             if days <= 0:
                 print("Please enter a positive number.")
+                continue
 
         except ValueError:
             print("Please enter a whole number.")
 
-    due_date = datetime.datetime.now() + datetime.timedelta(days=days)
+    borrow_date = datetime.datetime.now()
+    due_date = borrow_date + datetime.timedelta(days=days)
 
-    item.borrow(borrower, due_date)
-    
+    new_loan = Loan(item, borrower, borrow_date, due_date)
+
+    loans.append(new_loan)
+
+    print(
+        f"\nItem has been successfully borrowed by {borrower}, "
+        f"and will be due on {due_date.strftime('%d/%m/%Y')}."
+    )
+
     pause()
 
-def return_item():  # Removes details about loans of items (functionally)
+def return_item():
     clear_screen()
 
     print("RETURN ITEM\n")
@@ -208,7 +226,23 @@ def return_item():  # Removes details about loans of items (functionally)
         pause()
         return
 
-    item.return_item()
+    loan = item.find_active_loan(loans)
+
+    if loan is None:
+        print("\nThis item is not currently borrowed.")
+        pause()
+        return
+
+    print(f"\nItem: {item.name}")
+    print(f"Borrowed by: {loan.borrower}")
+    print(f"Due date: {loan.due_date.strftime('%d/%m/%Y')}")
+
+    confirmation = input("\nReturn this item? (y/n): ").strip().lower()
+
+    if confirmation == "y":
+        loan.return_item()
+    else:
+        print("Return cancelled.")
 
     pause()
 
