@@ -169,17 +169,16 @@ def add_item_window():  # Adds items to items[]
         row=1, column=1, padx=10, pady=10
     )
 
-    tk.Button(
-        window,
+    tk.Button(window,
         text="Add",
         command=add
     ).grid(row=2, column=0, padx=10, pady=20)
 
-    tk.Button(
-        window,
+    tk.Button(window,
         text="Cancel",
         command=window.destroy
     ).grid(row=2, column=1, padx=10, pady=20)
+
 
 def edit_item_window():    # Changes details about items
     item = get_selected_item()
@@ -192,30 +191,65 @@ def edit_item_window():    # Changes details about items
     window.geometry("400x200")
     window.resizable(False, False)
 
-    """clear_screen()
+    def save_changes():
+        new_name = name_entry.get().strip()
+        new_category = category_entry.get().strip()
 
-    print("EDIT ITEM\n")
+        if new_name == "":
+            messagebox.showerror(
+                "Invalid input",
+                "Item name cannot be empty."
+            )
+            return
 
-    item = find_item()
+        if new_category == "":
+            messagebox.showerror(
+                "Invalid input",
+                "Category cannot be empty."
+            )
+            return
 
-    if item is None:
-        pause()
-        return
-
-    print(f"\nEditing: {item.name}")
-
-    new_name = input(f"New name (press Enter to keep '{item.name}'): ").strip()
-
-    new_category = input(f"New category (press Enter to keep '{item.category}'): ").strip()
-
-    if new_name != "":      # In other words, if they just pressed enter, don't change the aspects
         item.name = new_name
-
-    if new_category != "":
         item.category = new_category
 
-    print("\nItem successfully updated.")
-    pause()"""
+        messagebox.showinfo(
+            "Updated",
+            "Item successfully updated."
+        )
+
+        refresh_item_list()
+        window.destroy()
+        
+    tk.Label(window, text=f"Editing: {item.name}").grid(
+        row=0, column=0, columnspan=2, pady=10
+    )
+
+    tk.Label(window, text="New Name").grid(
+        row=1, column=0, padx=10, pady=10, sticky="w"
+    )
+
+    name_entry = tk.Entry(window, width=25)
+    name_entry.insert(0, item.name)
+    name_entry.grid(row=1, column=1, padx=10, pady=10)
+
+    tk.Label(window, text="New Category").grid(
+        row=2, column=0, padx=10, pady=10, sticky="w"
+    )
+
+    category_entry = tk.Entry(window, width=25)
+    category_entry.insert(0, item.category)
+    category_entry.grid(row=2, column=1, padx=10, pady=10)
+
+    tk.Button(window,
+        text="Save",
+        command=save_changes
+    ).grid(row=3, column=0, padx=10, pady=20)
+
+    tk.Button(window,
+        text="Cancel",
+        command=window.destroy
+    ).grid(row=3, column=1, padx=10, pady=20)
+
 
 def borrow_item_window():
     item = get_selected_item()
@@ -234,54 +268,81 @@ def borrow_item_window():
     window.title("Borrow Item")
     window.geometry("400x200")
     window.resizable(False, False)
-    """clear_screen()
 
-    print("BORROW ITEM\n")
+    def borrow():
+        borrower = borrower_entry.get().strip()
 
-    days = 0    # Initialises a value for the while loop
-    item = find_item()
+        if borrower == "":
+            messagebox.showerror(
+                "Invalid input",
+                "Borrower's name cannot be empty."
+            )
+            return
 
-    if item is None:
-        pause()
-        return
-
-    # Check whether this item already has an active loan
-    if item.find_active_loan(loans) is not None:
-        print("\nThis item is already borrowed.")
-        pause()
-        return
-
-    borrower = input("Borrower's name: ").strip()
-
-    if borrower == "":
-        print("\nBorrower's name cannot be empty.")
-        pause()
-        return
-
-    while days <= 0:    # Keep asking for a day until a proper number is input
         try:
-            days = int(input("Number of days until due: "))
+            days = int(days_entry.get())
 
             if days <= 0:
-                print("Please enter a positive number.")
-                continue
+                raise ValueError
 
         except ValueError:
-            print("Please enter a whole number.")
+            messagebox.showerror(
+                "Invalid input",
+                "Days must be a positive whole number."
+            )
+            return
 
-    borrow_date = datetime.datetime.now()
-    due_date = borrow_date + datetime.timedelta(days=days)
+        borrow_date = datetime.datetime.now()
+        due_date = borrow_date + datetime.timedelta(days=days)
 
-    new_loan = Loan(item, borrower, borrow_date, due_date)
+        new_loan = Loan(
+            item,
+            borrower,
+            borrow_date,
+            due_date
+        )
 
-    loans.append(new_loan)
+        loans.append(new_loan)
 
-    print(
-        f"\nItem has been successfully borrowed by {borrower}, "
-        f"and will be due on {due_date.strftime('%d/%m/%Y')}."
+        messagebox.showinfo(
+            "Borrowed",
+            f"{item.name} has been borrowed by {borrower}.\n"
+            f"Due: {due_date.strftime('%d/%m/%Y')}"
+        )
+
+        refresh_item_list()
+        window.destroy()
+        
+    tk.Label(window,
+        text=f"Borrowing: {item.name}"
+    ).grid(row=0, column=0, columnspan=2, pady=10)
+
+    tk.Label(window, text="Borrower's name").grid(
+        row=1, column=0, padx=10, pady=10, sticky="w"
     )
 
-    pause()"""
+    borrower_entry = tk.Entry(window, width=25)
+    borrower_entry.grid(row=1, column=1, padx=10, pady=10)
+
+    tk.Label(window, text="Days until due").grid(
+        row=2, column=0, padx=10, pady=10, sticky="w"
+    )
+
+    days_entry = tk.Entry(window, width=25)
+    days_entry.grid(row=2, column=1, padx=10, pady=10)
+
+    tk.Button(
+        window,
+        text="Borrow",
+        command=borrow
+    ).grid(row=3, column=0, padx=10, pady=20)
+
+    tk.Button(
+        window,
+        text="Cancel",
+        command=window.destroy
+    ).grid(row=3, column=1, padx=10, pady=20)
+    
 
 # Non-windows (don't have TopLevel)
 
@@ -345,35 +406,6 @@ def return_item():    # Returns the selected item after confirming its loan.
         )
 
         refresh_item_list()
-    """clear_screen()
-
-    print("RETURN ITEM\n")
-
-    item = find_item()
-
-    if item is None:
-        pause()
-        return
-
-    loan = item.find_active_loan(loans)
-
-    if loan is None:
-        print("\nThis item is not currently borrowed.")
-        pause()
-        return
-
-    print(f"\nItem: {item.name}")
-    print(f"Borrowed by: {loan.borrower}")
-    print(f"Due date: {loan.due_date.strftime('%d/%m/%Y')}")
-
-    confirmation = input("\nReturn this item? (y/n): ").strip().lower()
-
-    if confirmation == "y":
-        loan.return_item()
-    else:
-        print("Return cancelled.")
-
-    pause()"""
 
 
 # Main window
