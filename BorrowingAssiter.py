@@ -1,7 +1,3 @@
-# WARNING
-# This version of the program doesn't work.
-# The GUI has not been implemented to a level high enough that it's usable in this version.
-
 # Iteration 2
 
 import tkinter as tk
@@ -61,12 +57,6 @@ items = []
 loans = []
 
 # General utility functions
-def clear_screen():
-    print("\n" * 40)
-
-def pause():    # Only use in windows/frames to reduce chance of having this happen twice
-    input("\nPress Enter to continue...")
-
 def generate_id():  # Finds the first unused ID
     number = 1      # Future version will not reuse deleted item IDs, but I need JSON for that
 
@@ -121,31 +111,88 @@ def get_selected_item():    # Returns the Item selected in the list.
 
     return find_item_by_id(item_id)
 
+
 # Windows
 
-def add_item_window(): # Adds items to items[]
-    clear_screen()
+def add_item_window():  # Adds items to items[]
+    window = tk.Toplevel(root)
+    window.title("Add Item")
+    window.geometry("400x200")
+    window.resizable(False, False)
 
-    print("ADD ITEM\n")
+    def add():
+        name = name_entry.get().strip()
+        category = category_entry.get().strip()
+    
+        if name == "":
+            messagebox.showerror(
+                "Invalid input",
+                "Item name cannot be empty."
+            )
+            return
+    
+        if category == "":
+            messagebox.showerror(
+                "Invalid input",
+                "Category cannot be empty."
+            )
+            return
+    
+        item_id = generate_id()
+    
+        new_item = Item(item_id, name, category)
+        items.append(new_item)
+    
+        messagebox.showinfo(
+            "Item added",
+            f"Item successfully added with ID {item_id}."
+        )
+    
+        refresh_item_list()
+        window.destroy()
 
-    name = input("Item name: ").strip()
-    category = input("Category: ").strip()
+    tk.Label(window, text="Item Name").grid(
+        row=0, column=0, padx=10, pady=10, sticky="w"
+    )
 
-    if name == "" or category == "":    # Might be better to check name and category separately when they are input
-        print("\nItem name and category cannot be empty.")
-        pause()
-        return
+    name_entry = tk.Entry(window, width=25)
+    name_entry.grid(
+        row=0, column=1, padx=10, pady=10
+    )
 
-    item_id = generate_id()
+    tk.Label(window, text="Category").grid(
+        row=1, column=0, padx=10, pady=10, sticky="w"
+    )
 
-    new_item = Item(item_id, name, category)    # Creates item based on input details
-    items.append(new_item)      # Adds item to items[]
+    category_entry = tk.Entry(window, width=25)
+    category_entry.grid(
+        row=1, column=1, padx=10, pady=10
+    )
 
-    print(f"\nItem successfully added with ID {item_id}.")
-    pause()
+    tk.Button(
+        window,
+        text="Add",
+        command=add
+    ).grid(row=2, column=0, padx=10, pady=20)
+
+    tk.Button(
+        window,
+        text="Cancel",
+        command=window.destroy
+    ).grid(row=2, column=1, padx=10, pady=20)
 
 def edit_item_window():    # Changes details about items
-    clear_screen()
+    item = get_selected_item()
+
+    if item is None:
+        return
+
+    window = tk.Toplevel(root)
+    window.title("Edit Item")
+    window.geometry("400x200")
+    window.resizable(False, False)
+
+    """clear_screen()
 
     print("EDIT ITEM\n")
 
@@ -168,9 +215,9 @@ def edit_item_window():    # Changes details about items
         item.category = new_category
 
     print("\nItem successfully updated.")
-    pause()
-    
-def delete_item():  # Removes items from items[]
+    pause()"""
+
+def borrow_item_window():
     item = get_selected_item()
 
     if item is None:
@@ -178,28 +225,16 @@ def delete_item():  # Removes items from items[]
 
     if item.find_active_loan(loans) is not None:
         messagebox.showerror(
-            "Cannot delete",
-            "This item is currently borrowed."
+            "Cannot borrow",
+            "This item is already borrowed."
         )
         return
 
-    confirmation = messagebox.askyesno(
-        "Delete Item",
-        f"Are you sure you want to delete {item.name}?"
-    )
-
-    if confirmation:
-        items.remove(item)
-
-        messagebox.showinfo(
-            "Deleted",
-            "Item successfully deleted."
-        )
-
-        refresh_item_list()
-
-def borrow_item_window():
-    clear_screen()
+    window = tk.Toplevel(root)
+    window.title("Borrow Item")
+    window.geometry("400x200")
+    window.resizable(False, False)
+    """clear_screen()
 
     print("BORROW ITEM\n")
 
@@ -246,10 +281,71 @@ def borrow_item_window():
         f"and will be due on {due_date.strftime('%d/%m/%Y')}."
     )
 
-    pause()
+    pause()"""
 
-def return_item_window():
-    clear_screen()
+# Non-windows (don't have TopLevel)
+
+def delete_item():  # Removes items from items[]
+    item = get_selected_item()
+
+    if item is None:
+        return
+
+    if item.find_active_loan(loans) is not None:
+        messagebox.showerror(
+            "Cannot delete",
+            "This item is currently borrowed."
+        )
+        return
+
+    confirmation = messagebox.askyesno(
+        "Delete Item",
+        f"Are you sure you want to delete {item.name}?"
+    )
+
+    if confirmation:
+        items.remove(item)
+
+        messagebox.showinfo(
+            "Deleted",
+            "Item successfully deleted."
+        )
+
+        refresh_item_list()
+
+def return_item():    # Returns the selected item after confirming its loan.
+    item = get_selected_item()
+
+    if item is None:
+        return
+
+    loan = item.find_active_loan(loans)
+
+    if loan is None:
+        messagebox.showerror(
+            "Cannot return",
+            "This item is not currently borrowed."
+        )
+        return
+
+    confirmation = messagebox.askyesno(
+        "Return Item",
+        f"Item: {item.name}\n"
+        f"Borrowed by: {loan.borrower}\n"
+        f"Due: {loan.due_date.strftime('%d/%m/%Y')}\n\n"
+        f"Return this item?"
+    )
+
+    if confirmation:
+        loan.return_item()
+
+        messagebox.showinfo(
+            "Returned",
+            "The loan has been successfully returned."
+        )
+
+        refresh_item_list()
+    """clear_screen()
 
     print("RETURN ITEM\n")
 
@@ -277,7 +373,7 @@ def return_item_window():
     else:
         print("Return cancelled.")
 
-    pause()
+    pause()"""
 
 
 # Main window
@@ -343,7 +439,7 @@ tk.Button(root,
 tk.Button(root,
     text="Return Item",
     width=15,
-    command=return_item_window
+    command=return_item
 ).grid(row=4, column=0, padx=5, pady=5)
 
 tk.Button(root,
@@ -355,4 +451,4 @@ tk.Button(root,
 # Initial display
 refresh_item_list()
 
-root.mainloop
+root.mainloop()
