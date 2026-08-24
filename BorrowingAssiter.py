@@ -78,22 +78,11 @@ def generate_id():  # Finds the first unused ID
 
         number += 1
 
-def find_item():    # Checks items[] and returns the item that has the input ID
-    if len(items) == 0:
-        print("There are currently no items.")
-        return None
-
-    print("\nAvailable items:")
-    for item in items:
-        print(item.get_details())
-
-    item_id = input("\nEnter the ID of the item: ").strip().upper()
-
+def find_item_by_id(item_id):    # Checks items[] and returns the item that has the input ID
     for item in items:
         if item.id == item_id:
             return item
 
-    print("No item with that ID was found.")
     return None
 
 def refresh_item_list():    # Updates the list shown in the main window
@@ -116,6 +105,21 @@ def refresh_item_list():    # Updates the list shown in the main window
                 f"{item.id} | {item.name} | {item.category} | {status}"
             )
 
+def get_selected_item():    # Returns the Item selected in the list.
+    selection = item_list.curselection()
+
+    if not selection:
+        messagebox.showwarning("No item selected", "Please select an item.")
+        return None
+
+    selected_text = item_list.get(selection[0])
+
+    if selected_text == "No items.":
+        return None
+
+    item_id = selected_text.split(" | ")[0]
+
+    return find_item_by_id(item_id)
 
 # Windows
 
@@ -166,33 +170,33 @@ def edit_item_window():    # Changes details about items
     print("\nItem successfully updated.")
     pause()
     
-def delete_item_window():  # Removes items from items[]
-    clear_screen()
-
-    print("DELETE ITEM\n")
-
-    item = find_item()
+def delete_item():  # Removes items from items[]
+    item = get_selected_item()
 
     if item is None:
-        pause()
         return
 
-    # Check whether this item already has an active loan
-    if item.find_active_loan(loans) is not None:    # Also helps user experience, loans are not forgotten
-        print("\nThis item is already borrowed.")
-        print("It cannot be deleted until it has been returned.")
-        pause()
+    if item.find_active_loan(loans) is not None:
+        messagebox.showerror(
+            "Cannot delete",
+            "This item is currently borrowed."
+        )
         return
 
-    confirmation = input(f"\nAre you sure you want to delete {item.name}? (y/n): ").strip().lower()
+    confirmation = messagebox.askyesno(
+        "Delete Item",
+        f"Are you sure you want to delete {item.name}?"
+    )
 
-    if confirmation == "y":
+    if confirmation:
         items.remove(item)
-        print("\nItem successfully deleted.")
-    else:
-        print("\nDeletion cancelled.")
 
-    pause()
+        messagebox.showinfo(
+            "Deleted",
+            "Item successfully deleted."
+        )
+
+        refresh_item_list()
 
 def borrow_item_window():
     clear_screen()
@@ -283,8 +287,7 @@ root.title("Classroom Equipment Tracker")
 root.geometry("700x450")
 
 
-title_label = tk.Label(
-    root,
+title_label = tk.Label(root,
     text="CLASSROOM EQUIPMENT TRACKER",
     font=("Arial", 16)
 )
@@ -298,8 +301,7 @@ title_label.grid(
 
 
 # List of items
-item_list = tk.Listbox(
-    root,
+item_list = tk.Listbox(root,
     width=80,
     height=15
 )
@@ -329,7 +331,7 @@ tk.Button(root,
 tk.Button(root,
     text="Delete Item",
     width=15,
-    command=delete_item_window
+    command=delete_item
 ).grid(row=3, column=0, padx=5, pady=5)
 
 tk.Button(root,
