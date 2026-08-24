@@ -1,6 +1,14 @@
+# WARNING
+# This version of the program doesn't work.
+# The GUI has not been implemented to a level high enough that it's usable in this version.
+
 # Iteration 2
 
+import tkinter as tk
+from tkinter import messagebox
 import datetime
+
+# Classes
 
 # Class that holds information about an item
 # Example usage: item1 = Item("EQ001", "FX9860GII Calculator", "Calculator")
@@ -88,9 +96,30 @@ def find_item():    # Checks items[] and returns the item that has the input ID
     print("No item with that ID was found.")
     return None
 
+def refresh_item_list():    # Updates the list shown in the main window
+    item_list.delete(0, tk.END)
+
+    if len(items) == 0:
+        item_list.insert(tk.END, "No items.")
+
+    else:
+        for item in items:
+            loan = item.find_active_loan(loans)
+
+            if loan is None:
+                status = "Available"
+            else:
+                status = f"Borrowed by {loan.borrower}"
+
+            item_list.insert(
+                tk.END,
+                f"{item.id} | {item.name} | {item.category} | {status}"
+            )
+
 
 # Windows
-def add_item(): # Adds items to items[]
+
+def add_item_window(): # Adds items to items[]
     clear_screen()
 
     print("ADD ITEM\n")
@@ -111,7 +140,7 @@ def add_item(): # Adds items to items[]
     print(f"\nItem successfully added with ID {item_id}.")
     pause()
 
-def edit_item():    # Changes details about items
+def edit_item_window():    # Changes details about items
     clear_screen()
 
     print("EDIT ITEM\n")
@@ -137,7 +166,7 @@ def edit_item():    # Changes details about items
     print("\nItem successfully updated.")
     pause()
     
-def delete_item():  # Removes items from items[]
+def delete_item_window():  # Removes items from items[]
     clear_screen()
 
     print("DELETE ITEM\n")
@@ -148,11 +177,11 @@ def delete_item():  # Removes items from items[]
         pause()
         return
 
-    # To avoid problems with loans pointing to non-existent items in the future
-    if not item.is_available:   # Also helps user experience, loans are not forgotten
-        print("\nThis item is currently borrowed.")
+    # Check whether this item already has an active loan
+    if item.find_active_loan(loans) is not None:    # Also helps user experience, loans are not forgotten
+        print("\nThis item is already borrowed.")
         print("It cannot be deleted until it has been returned.")
-        pause() 
+        pause()
         return
 
     confirmation = input(f"\nAre you sure you want to delete {item.name}? (y/n): ").strip().lower()
@@ -165,7 +194,7 @@ def delete_item():  # Removes items from items[]
 
     pause()
 
-def borrow_item():
+def borrow_item_window():
     clear_screen()
 
     print("BORROW ITEM\n")
@@ -190,7 +219,7 @@ def borrow_item():
         pause()
         return
 
-    while days > 0:    # Keep asking for a day until a proper number is input
+    while days <= 0:    # Keep asking for a day until a proper number is input
         try:
             days = int(input("Number of days until due: "))
 
@@ -215,7 +244,7 @@ def borrow_item():
 
     pause()
 
-def return_item():
+def return_item_window():
     clear_screen()
 
     print("RETURN ITEM\n")
@@ -247,39 +276,81 @@ def return_item():
     pause()
 
 
-def main():
-    choice = None
-    while choice != "7":
-        clear_screen()
+# Main window
 
-        print("CLASSROOM EQUIPMENT TRACKER\n")
-        print("1. Add item")
-        print("2. Edit item")
-        print("3. Delete item")
-        print("4. Borrow item")
-        print("5. Return item")
-        print("6. Save (not working)")
-        print("7. Exit\n")
+root = tk.Tk()
+root.title("Classroom Equipment Tracker")
+root.geometry("700x450")
 
-        choice = input("Select an option: ").strip()
 
-        if choice == "1":
-            add_item()
-            continue
-        elif choice == "2":
-            edit_item()
-            continue
-        elif choice == "3":
-            delete_item()
-            continue
-        elif choice == "4":
-            borrow_item()
-            continue
-        elif choice == "5":
-            return_item()
-            continue
-        elif choice != "7":
-            print("Invalid option.")
-            pause()
+title_label = tk.Label(
+    root,
+    text="CLASSROOM EQUIPMENT TRACKER",
+    font=("Arial", 16)
+)
 
-main()
+title_label.grid(
+    row=0,
+    column=0,
+    columnspan=2,
+    pady=15
+)
+
+
+# List of items
+item_list = tk.Listbox(
+    root,
+    width=80,
+    height=15
+)
+
+item_list.grid(
+    row=1,
+    column=0,
+    columnspan=2,
+    padx=15,
+    pady=10
+)
+
+
+# Buttons
+tk.Button(root,
+    text="Add Item",
+    width=15,
+    command=add_item_window
+).grid(row=2, column=0, padx=5, pady=5)
+
+tk.Button(root,
+    text="Edit Item",
+    width=15,
+    command=edit_item_window
+).grid(row=2, column=1, padx=5, pady=5)
+
+tk.Button(root,
+    text="Delete Item",
+    width=15,
+    command=delete_item_window
+).grid(row=3, column=0, padx=5, pady=5)
+
+tk.Button(root,
+    text="Borrow Item",
+    width=15,
+    command=borrow_item_window
+).grid(row=3, column=1, padx=5, pady=5)
+
+tk.Button(root,
+    text="Return Item",
+    width=15,
+    command=return_item_window
+).grid(row=4, column=0, padx=5, pady=5)
+
+tk.Button(root,
+    text="Exit",
+    width=15,
+    command=root.destroy
+).grid(row=4, column=1, padx=5, pady=5)
+
+# Initial display
+refresh_item_list()
+
+root.mainloop
