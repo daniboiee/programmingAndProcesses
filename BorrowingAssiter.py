@@ -14,7 +14,6 @@ class Item:
         self.name = name
         self.category = category
 
-    # Example usage: print(item1.get_details())
     def get_details(self):
         return f"{self.id}: {self.name} ({self.category})"
 
@@ -45,11 +44,9 @@ class Loan:
     # Example usage: item1.return_item()
     def return_item(self):
         if self.return_date is not None:
-            print("This loan has already been returned.")
             return False
 
         self.return_date = datetime.datetime.now()
-        print("The loan has been successfully returned.")
         return True
 
 # Containers for items and loans
@@ -99,7 +96,7 @@ def get_selected_item():    # Returns the Item selected in the list.
     selection = item_list.curselection()
 
     if not selection:
-        messagebox.showwarning("No item selected", "Please select an item.")
+        messagebox.showwarning("No item selected", "Please select an item.", parent=root)
         return None
 
     selected_text = item_list.get(selection[0])
@@ -111,14 +108,25 @@ def get_selected_item():    # Returns the Item selected in the list.
 
     return find_item_by_id(item_id)
 
+def center_window(window, width, height):    # Centres a window over the main window.
+    root.update_idletasks()
+
+    x = root.winfo_x() + (root.winfo_width() - width) // 2
+    y = root.winfo_y() + (root.winfo_height() - height) // 2
+
+    window.geometry(
+        f"{width}x{height}+{x}+{y}"
+    )
+
 
 # Windows
 
 def add_item_window():  # Adds items to items[]
     window = tk.Toplevel(root)
     window.title("Add Item")
-    window.geometry("400x200")
     window.resizable(False, False)
+
+    center_window(window, 265, 140)
 
     def add():
         name = name_entry.get().strip()
@@ -127,14 +135,16 @@ def add_item_window():  # Adds items to items[]
         if name == "":
             messagebox.showerror(
                 "Invalid input",
-                "Item name cannot be empty."
+                "Item name cannot be empty.",
+                parent=window
             )
             return
     
         if category == "":
             messagebox.showerror(
                 "Invalid input",
-                "Category cannot be empty."
+                "Category cannot be empty.",
+                parent=window
             )
             return
     
@@ -145,7 +155,8 @@ def add_item_window():  # Adds items to items[]
     
         messagebox.showinfo(
             "Item added",
-            f"Item successfully added with ID {item_id}."
+            f"Item successfully added with ID {item_id}.",
+            parent=window
         )
     
         refresh_item_list()
@@ -188,8 +199,9 @@ def edit_item_window():    # Changes details about items
 
     window = tk.Toplevel(root)
     window.title("Edit Item")
-    window.geometry("400x200")
     window.resizable(False, False)
+
+    center_window(window, 290, 190)
 
     def save_changes():
         new_name = name_entry.get().strip()
@@ -198,14 +210,16 @@ def edit_item_window():    # Changes details about items
         if new_name == "":
             messagebox.showerror(
                 "Invalid input",
-                "Item name cannot be empty."
+                "Item name cannot be empty.",
+                parent=window
             )
             return
 
         if new_category == "":
             messagebox.showerror(
                 "Invalid input",
-                "Category cannot be empty."
+                "Category cannot be empty.",
+                parent=window
             )
             return
 
@@ -214,7 +228,8 @@ def edit_item_window():    # Changes details about items
 
         messagebox.showinfo(
             "Updated",
-            "Item successfully updated."
+            "Item successfully updated.",
+            parent=window
         )
 
         refresh_item_list()
@@ -260,14 +275,16 @@ def borrow_item_window():
     if item.find_active_loan(loans) is not None:
         messagebox.showerror(
             "Cannot borrow",
-            "This item is already borrowed."
+            "This item is already borrowed.",
+            parent=root
         )
         return
 
     window = tk.Toplevel(root)
     window.title("Borrow Item")
-    window.geometry("400x200")
     window.resizable(False, False)
+
+    center_window(window, 295, 180)
 
     def borrow():
         borrower = borrower_entry.get().strip()
@@ -275,7 +292,8 @@ def borrow_item_window():
         if borrower == "":
             messagebox.showerror(
                 "Invalid input",
-                "Borrower's name cannot be empty."
+                "Borrower's name cannot be empty.",
+                parent=window
             )
             return
 
@@ -288,7 +306,8 @@ def borrow_item_window():
         except ValueError:
             messagebox.showerror(
                 "Invalid input",
-                "Days must be a positive whole number."
+                "Days must be a positive whole number.",
+                parent=window
             )
             return
 
@@ -307,7 +326,8 @@ def borrow_item_window():
         messagebox.showinfo(
             "Borrowed",
             f"{item.name} has been borrowed by {borrower}.\n"
-            f"Due: {due_date.strftime('%d/%m/%Y')}"
+            f"Due: {due_date.strftime('%d/%m/%Y')}",
+            parent=window
         )
 
         refresh_item_list()
@@ -355,13 +375,15 @@ def delete_item():  # Removes items from items[]
     if item.find_active_loan(loans) is not None:
         messagebox.showerror(
             "Cannot delete",
-            "This item is currently borrowed."
+            "This item is currently borrowed.",
+            parent=root
         )
         return
 
     confirmation = messagebox.askyesno(
         "Delete Item",
-        f"Are you sure you want to delete {item.name}?"
+        f"Are you sure you want to delete {item.name}?",
+        parent=root
     )
 
     if confirmation:
@@ -369,7 +391,8 @@ def delete_item():  # Removes items from items[]
 
         messagebox.showinfo(
             "Deleted",
-            "Item successfully deleted."
+            "Item successfully deleted.",
+            parent=root
         )
 
         refresh_item_list()
@@ -385,7 +408,8 @@ def return_item():    # Returns the selected item after confirming its loan.
     if loan is None:
         messagebox.showerror(
             "Cannot return",
-            "This item is not currently borrowed."
+            "This item is not currently borrowed.",
+            parent=root
         )
         return
 
@@ -394,7 +418,8 @@ def return_item():    # Returns the selected item after confirming its loan.
         f"Item: {item.name}\n"
         f"Borrowed by: {loan.borrower}\n"
         f"Due: {loan.due_date.strftime('%d/%m/%Y')}\n\n"
-        f"Return this item?"
+        f"Return this item?",
+        parent=root
     )
 
     if confirmation:
@@ -402,7 +427,8 @@ def return_item():    # Returns the selected item after confirming its loan.
 
         messagebox.showinfo(
             "Returned",
-            "The loan has been successfully returned."
+            "The loan has been successfully returned.",
+            parent=root
         )
 
         refresh_item_list()
@@ -412,7 +438,7 @@ def return_item():    # Returns the selected item after confirming its loan.
 
 root = tk.Tk()
 root.title("Classroom Equipment Tracker")
-root.geometry("700x450")
+root.geometry("520x450")
 
 
 title_label = tk.Label(root,
