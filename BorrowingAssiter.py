@@ -7,26 +7,28 @@ import datetime
 # Classes
 
 # Class that holds information about an item
-# Example usage: item1 = Item("EQ001", "FX9860GII Calculator", "Calculator")
 class Item:
+    # Example usage: item1 = Item("EQ001", "FX9860GII Calculator", "Calculator")
     def __init__(self, id, name, category):
         self.id = id
         self.name = name
         self.category = category
 
+    # Returns the item's details as a formatted string
     def get_details(self):
         return f"{self.id}: {self.name} ({self.category})"
 
-    def find_active_loan(self, loans): # Finds the current loan for an item
+    # Finds and returns the item's current loan if it is borrowed
+    def find_active_loan(self, loans):
         for loan in loans:
             if loan.item == self and loan.return_date is None:
                 return loan
 
         return None
 
-# Class that holds information about one loan
-# Example usage: loan1 = Loan(item1, "James", datetime.datetime.now(), datetime.datetime(2026, 8, 31))
+# Class that holds information about the loan of an item
 class Loan:
+    # Example usage: loan1 = Loan(item1, "James", datetime.datetime.now(), datetime.datetime(2026, 8, 31))
     def __init__(self, item, borrower, borrow_date, due_date):
         self.item = item
         self.borrower = borrower
@@ -34,14 +36,14 @@ class Loan:
         self.due_date = due_date
         self.return_date = None
 
-    # Example usage: loan1.get_details()
+    # Returns the loan's details as a formatted string
     def get_details(self):
         return (
             f"{self.item.name} borrowed by {self.borrower}, "
             f"due {self.due_date.strftime('%d/%m/%Y')}"
         )
 
-    # Example usage: item1.return_item()
+    # Records the item as returned and prevents it from being returned twice
     def return_item(self):
         if self.return_date is not None:
             return False
@@ -53,26 +55,31 @@ class Loan:
 items = []
 loans = []
 
+
 # General utility functions
-def generate_id():  # Finds the first unused ID
+
+# Generates the first unused equipment ID
+def generate_id():
     number = 1      # Future version will not reuse deleted item IDs, but I need JSON for that
 
     while True:
-        item_id = f"EQ{number:03d}" # :03d makes the number at least 3 digits, adding 0s if empty spaces
+        item_id = f"EQ{number:03d}" # Formats the number as a (minimum) three-digit ID, e.g. EQ001, EQ002, EQ010, EQ1234
 
         if not any(item.id == item_id for item in items):
             return item_id
 
         number += 1
 
-def find_item_by_id(item_id):    # Checks items[] and returns the item that has the input ID
+# Finds and returns an item using its ID
+def find_item_by_id(item_id):
     for item in items:
         if item.id == item_id:
             return item
 
     return None
 
-def refresh_item_list():    # Updates the list shown in the main window
+# Refreshes the item list shown in the main window
+def refresh_item_list():
     item_list.delete(0, tk.END)
 
     if len(items) == 0:
@@ -92,7 +99,8 @@ def refresh_item_list():    # Updates the list shown in the main window
                 f"{item.id} | {item.name} | {item.category} | {status}"
             )
 
-def get_selected_item():    # Returns the Item selected in the list.
+# Returns the item currently selected in the list
+def get_selected_item():
     selection = item_list.curselection()
 
     if not selection:
@@ -104,11 +112,12 @@ def get_selected_item():    # Returns the Item selected in the list.
     if selected_text == "No items.":
         return None
 
-    item_id = selected_text.split(" | ")[0]
+    item_id = selected_text.split(" | ")[0] # Accesses the ID data stored in the string
 
     return find_item_by_id(item_id)
 
-def center_window(window, width, height):    # Centres a window over the main window.
+# Centres a window over the main window
+def center_window(window, width, height):
     root.update_idletasks()
 
     x = root.winfo_x() + (root.winfo_width() - width) // 2
@@ -121,7 +130,8 @@ def center_window(window, width, height):    # Centres a window over the main wi
 
 # Windows
 
-def add_item_window():  # Adds items to items[]
+# Opens the window used to add a new item
+def add_item_window():
     window = tk.Toplevel(root)
     window.title("Add Item")
     window.resizable(False, False)
@@ -190,8 +200,8 @@ def add_item_window():  # Adds items to items[]
         command=window.destroy
     ).grid(row=2, column=1, padx=10, pady=20)
 
-
-def edit_item_window():    # Changes details about items
+# Opens the window used to edit an existing item
+def edit_item_window():
     item = get_selected_item()
 
     if item is None:
@@ -265,7 +275,7 @@ def edit_item_window():    # Changes details about items
         command=window.destroy
     ).grid(row=3, column=1, padx=10, pady=20)
 
-
+# Opens the window used to borrow an item
 def borrow_item_window():
     item = get_selected_item()
 
@@ -302,7 +312,7 @@ def borrow_item_window():
 
             if days <= 0:
                 raise ValueError
-
+            
         except ValueError:
             messagebox.showerror(
                 "Invalid input",
@@ -310,9 +320,18 @@ def borrow_item_window():
                 parent=window
             )
             return
+        
+        try:
+            borrow_date = datetime.datetime.now()
+            due_date = borrow_date + datetime.timedelta(days=days)
 
-        borrow_date = datetime.datetime.now()
-        due_date = borrow_date + datetime.timedelta(days=days)
+        except OverflowError:
+            messagebox.showerror(
+                "Invalid input",
+                "Input value is too large.",
+                parent=window
+            )
+            return
 
         new_loan = Loan(
             item,
@@ -366,7 +385,8 @@ def borrow_item_window():
 
 # Non-windows (don't have TopLevel)
 
-def delete_item():  # Removes items from items[]
+# Deletes the selected item after checking that it is not currently borrowed
+def delete_item():
     item = get_selected_item()
 
     if item is None:
@@ -397,7 +417,8 @@ def delete_item():  # Removes items from items[]
 
         refresh_item_list()
 
-def return_item():    # Returns the selected item after confirming its loan.
+# Returns the selected item after confirming its loan
+def return_item(): 
     item = get_selected_item()
 
     if item is None:
@@ -440,7 +461,7 @@ root = tk.Tk()
 root.title("Classroom Equipment Tracker")
 root.geometry("520x450")
 
-
+# Displays the title of the application
 title_label = tk.Label(root,
     text="CLASSROOM EQUIPMENT TRACKER",
     font=("Arial", 16)
@@ -453,8 +474,7 @@ title_label.grid(
     pady=15
 )
 
-
-# List of items
+# Displays the list of equipment items and their current status
 item_list = tk.Listbox(root,
     width=80,
     height=15
@@ -470,6 +490,7 @@ item_list.grid(
 
 
 # Buttons
+
 tk.Button(root,
     text="Add Item",
     width=15,
@@ -506,7 +527,7 @@ tk.Button(root,
     command=root.destroy
 ).grid(row=4, column=1, padx=5, pady=5)
 
-# Initial display
+# Displays current list of items on program start
 refresh_item_list()
 
 root.mainloop()
