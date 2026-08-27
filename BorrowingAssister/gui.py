@@ -9,8 +9,28 @@ import datetime
 from classes import Item, Loan
 import logic
 
+
+# Colour/font constants
+
+# Colours
+BG_COLOUR = "#F2F2F2"
+BUTTON_COLOUR = "#D9D9D9"
+TEXT_COLOUR = "#222222"
+
+# Fonts
+TITLE_FONT = ("Arial", 16, "bold")
+NORMAL_FONT = ("Arial", 10)
+
+
 # Utility functions for GUI-related things
 
+# Applies the standard font and colours to a widget
+def style_widget(widget):
+    widget.config(
+        font=NORMAL_FONT,
+        bg=BG_COLOUR,
+        fg=TEXT_COLOUR)
+    return widget
 
 # Populates the item list with a given set of items (used by both full refresh and search)
 def populate_item_list(item_iterable, empty_message):
@@ -172,15 +192,17 @@ def add_item_window():
         row=1, column=1, padx=10, pady=10
     )
 
+    style_widget(
     tk.Button(window,
         text="Add",
         command=add
-    ).grid(row=2, column=0, padx=10, pady=20)
+    )).grid(row=2, column=0, padx=10, pady=20)
 
+    style_widget(
     tk.Button(window,
         text="Cancel",
         command=window.destroy
-    ).grid(row=2, column=1, padx=10, pady=20)
+    )).grid(row=2, column=1, padx=10, pady=20)
 
 # Opens the window used to edit an existing item
 def edit_item_window():
@@ -248,15 +270,17 @@ def edit_item_window():
     category_entry.insert(0, item.category)
     category_entry.grid(row=2, column=1, padx=10, pady=10)
 
+    style_widget(
     tk.Button(window,
         text="Save",
         command=save_changes
-    ).grid(row=3, column=0, padx=10, pady=20)
+    )).grid(row=3, column=0, padx=10, pady=20)
 
+    style_widget(
     tk.Button(window,
         text="Cancel",
         command=window.destroy
-    ).grid(row=3, column=1, padx=10, pady=20)
+    )).grid(row=3, column=1, padx=10, pady=20)
 
 # Opens the window used to borrow an item
 def borrow_item_window():
@@ -354,17 +378,19 @@ def borrow_item_window():
     days_entry = tk.Entry(window, width=25)
     days_entry.grid(row=2, column=1, padx=10, pady=10)
 
+    style_widget(
     tk.Button(
         window,
         text="Borrow",
         command=borrow
-    ).grid(row=3, column=0, padx=10, pady=20)
+    )).grid(row=3, column=0, padx=10, pady=20)
 
+    style_widget(
     tk.Button(
         window,
         text="Cancel",
         command=window.destroy
-    ).grid(row=3, column=1, padx=10, pady=20)
+    )).grid(row=3, column=1, padx=10, pady=20)
 
 
 # Non-windows (don't have TopLevel)
@@ -456,7 +482,9 @@ def start_gui():
     # Displays the title of the application
     title_label = tk.Label(root,
         text="Equipment Tracker",
-        font=("Arial", 16)
+        font=TITLE_FONT,
+        bg=BG_COLOUR,
+        fg=TEXT_COLOUR
     )
 
     title_label.grid(
@@ -479,69 +507,72 @@ def start_gui():
     search_entry.grid(row=0, column=0, padx=5)
     search_entry.bind("<Return>", lambda event: search_items())   # Enter key triggers search
 
+    style_widget(
     tk.Button(search_frame,
         text="Search",
         command=search_items
-    ).grid(row=0, column=1, padx=5)
-    
+    )).grid(row=0, column=1, padx=5)
+
+    style_widget(
     tk.Button(search_frame, 
         text="Clear", 
         command=clear_search
-    ).grid(row=0, column=2, padx=5)
+    )).grid(row=0, column=2, padx=5)
 
     # Displays the list of equipment items and their current status
     item_list = tk.Listbox(root,
         width=80,
         height=15
     )
-
-    item_list.grid(
-        row=2,
-        column=0,
-        columnspan=2,
-        padx=15,
-        pady=10
-    )
+    item_list.grid(row=2, column=0, columnspan=2, padx=15, pady=10)
 
 
     # Buttons
-
-    add_item = tk.Button(root,
+    
+    add_item = style_widget(
+        tk.Button(root,
         text="Add Item",
         width=15,
-        command=add_item_window)
+        command=add_item_window))
     add_item.grid(row=3, column=0, padx=5, pady=5)
 
-    edit_button = tk.Button(root,
+    edit_button = style_widget(
+        tk.Button(root,
         text="Edit Item",
         width=15,
-        command=edit_item_window)
+        command=edit_item_window))
     edit_button.grid(row=3, column=1, padx=5, pady=5)
 
-    delete_button = tk.Button(root,
+    delete_button = style_widget(
+        tk.Button(root,
         text="Delete Item",
         width=15,
-        command=on_delete_click)
+        command=on_delete_click))
     delete_button.grid(row=4, column=0, padx=5, pady=5)
 
-    borrow_button = tk.Button(root,
+    borrow_button = style_widget(
+        tk.Button(root,
         text="Borrow Item",
         width=15,
-        command=borrow_item_window)
+        command=borrow_item_window))
     borrow_button.grid(row=4, column=1, padx=5, pady=5)
 
-    return_button = tk.Button(root,
+    return_button = style_widget(
+        tk.Button(root,
         text="Return Item",
         width=15,
-        command=on_return_click)
+        command=on_return_click))
     return_button.grid(row=5, column=0, padx=5, pady=5)
 
     # Exit button
-    tk.Button(root,
+    style_widget(tk.Button(root,
         text="Exit",
         width=15,
-        command=root.destroy
-    ).grid(row=5, column=1, padx=5, pady=5)
+        command=root.destroy,
+        font=NORMAL_FONT,
+        bg=BG_COLOUR,
+        fg=TEXT_COLOUR
+    )).grid(row=5, column=1, padx=5, pady=5)
 
     # Displays current list of items on program start
     refresh_item_list()
