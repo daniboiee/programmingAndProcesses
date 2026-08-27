@@ -32,7 +32,8 @@ def find_item_by_id(item_id):
 
     return None
 
-def save_data():    # Saves all items, loans, and the next available ID to the JSON file
+# Saves all items, loans, and the next available ID to the JSON file
+def save_data():
     data = {
         "next_id": next_id,
         "items": [],
@@ -61,5 +62,63 @@ def save_data():    # Saves all items, loans, and the next available ID to the J
             )
         })
 
-    with open("data.json", "w") as file:
+    with open("BorrowingAssister/data.json", "w") as file:
         json.dump(data, file, indent=4)
+
+# Loads items and loans from the JSON file when the program starts
+def load_data():
+    global next_id
+
+    try:
+        with open("BorrowingAssister/data.json", "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        return  # No file exists yet, so the program starts with empty lists
+
+    items.clear()
+    loans.clear()
+
+    next_id = data.get("next_id", 1)
+
+    # Recreate Item objects from the saved dictionaries
+    for item_data in data.get("items", []):
+        item = Item(
+            item_data["id"],
+            item_data["name"],
+            item_data["category"]
+        )
+
+        items.append(item)
+
+    # Recreate Loan objects from the saved dictionaries
+    for loan_data in data.get("loans", []):
+        item = find_item_by_id(loan_data["item_id"])
+
+        if item is None:
+            continue
+
+        borrow_date = datetime.datetime.fromisoformat(
+            loan_data["borrow_date"]
+        )
+
+        due_date = datetime.datetime.fromisoformat(
+            loan_data["due_date"]
+        )
+
+        if loan_data["return_date"] is None:
+            return_date = None
+        else:
+            return_date = datetime.datetime.fromisoformat(
+                loan_data["return_date"]
+            )
+
+        loan = Loan(
+            item,
+            loan_data["borrower"],
+            borrow_date,
+            due_date
+        )
+
+        loan.return_date = return_date
+
+        loans.append(loan)
