@@ -11,28 +11,35 @@ import logic
 
 # Utility functions for GUI-related things
 
-# Refreshes the item list shown in the main window
-def refresh_item_list():
+
+# Populates the item list with a given set of items (used by both full refresh and search)
+def populate_item_list(item_iterable, empty_message):
     item_list.delete(0, tk.END)
 
-    if len(logic.items) == 0:
-        item_list.insert(tk.END, "No items.")
+    results = list(item_iterable)
 
-    else:
-        for item in logic.items:
-            loan = item.find_active_loan(logic.loans)
+    if len(results) == 0:
+        item_list.insert(tk.END, empty_message)
+        return
 
-            if loan is None:
-                status = "Available"
-            elif loan.is_overdue():
-                status = f"OVERDUE - {loan.borrower}"
-            else:
-                status = f"Borrowed by {loan.borrower}"
+    for item in results:
+        loan = item.find_active_loan(logic.loans)
 
-            item_list.insert(
-                tk.END,
-                f"{item.id} | {shorten_text(item.name)} | {shorten_text(item.category)} | {status}"
-            )
+        if loan is None:
+            status = "Available"
+        elif loan.is_overdue():
+            status = f"OVERDUE - {loan.borrower}"
+        else:
+            status = f"Borrowed by {loan.borrower}"
+
+        item_list.insert(
+            tk.END,
+            f"{item.id} | {shorten_text(item.name)} | {shorten_text(item.category)} | {status}"
+        )
+
+# Refreshes the item list shown in the main window
+def refresh_item_list():
+    populate_item_list(logic.items, "No items.")
 
 # Returns the item currently selected in the list
 def get_selected_item():
@@ -82,6 +89,22 @@ def update_button_states():
         delete_button.config(state="normal")
         borrow_button.config(state="normal")
         return_button.config(state="normal")
+
+def search_items():
+    search_term = search_entry.get().strip().lower()
+
+    matches = [
+        item for item in logic.items
+        if search_term in item.id.lower()
+        or search_term in item.name.lower()
+        or search_term in item.category.lower()
+    ]
+
+    populate_item_list(matches, "No matching items.")
+
+def clear_search():
+    search_entry.delete(0, tk.END)
+    refresh_item_list()
 
 
 # Windows
@@ -422,12 +445,12 @@ def on_return_click():
 # Main window
 
 def start_gui():
-    global root, item_list
+    global root, item_list, search_entry
     global edit_button, delete_button, borrow_button, return_button
 
     root = tk.Tk()
     root.title("Equipment Tracker")
-    root.geometry("520x450")
+    root.geometry("520x490")
     root.resizable(False, False)
 
     # Displays the title of the application
@@ -443,6 +466,29 @@ def start_gui():
         pady=15
     )
 
+    # Search bar
+    search_frame = tk.Frame(root)
+    search_frame.grid(
+        row=1, 
+        column=0, 
+        columnspan=2, 
+        pady=(0, 10)
+    )
+
+    search_entry = tk.Entry(search_frame, width=40)
+    search_entry.grid(row=0, column=0, padx=5)
+    search_entry.bind("<Return>", lambda event: search_items())   # Enter key triggers search
+
+    tk.Button(search_frame,
+        text="Search",
+        command=search_items
+    ).grid(row=0, column=1, padx=5)
+    
+    tk.Button(search_frame, 
+        text="Clear", 
+        command=clear_search
+    ).grid(row=0, column=2, padx=5)
+
     # Displays the list of equipment items and their current status
     item_list = tk.Listbox(root,
         width=80,
@@ -450,7 +496,7 @@ def start_gui():
     )
 
     item_list.grid(
-        row=1,
+        row=2,
         column=0,
         columnspan=2,
         padx=15,
@@ -464,38 +510,38 @@ def start_gui():
         text="Add Item",
         width=15,
         command=add_item_window)
-    add_item.grid(row=2, column=0, padx=5, pady=5)
+    add_item.grid(row=3, column=0, padx=5, pady=5)
 
     edit_button = tk.Button(root,
         text="Edit Item",
         width=15,
         command=edit_item_window)
-    edit_button.grid(row=2, column=1, padx=5, pady=5)
+    edit_button.grid(row=3, column=1, padx=5, pady=5)
 
     delete_button = tk.Button(root,
         text="Delete Item",
         width=15,
         command=on_delete_click)
-    delete_button.grid(row=3, column=0, padx=5, pady=5)
+    delete_button.grid(row=4, column=0, padx=5, pady=5)
 
     borrow_button = tk.Button(root,
         text="Borrow Item",
         width=15,
         command=borrow_item_window)
-    borrow_button.grid(row=3, column=1, padx=5, pady=5)
+    borrow_button.grid(row=4, column=1, padx=5, pady=5)
 
     return_button = tk.Button(root,
         text="Return Item",
         width=15,
         command=on_return_click)
-    return_button.grid(row=4, column=0, padx=5, pady=5)
+    return_button.grid(row=5, column=0, padx=5, pady=5)
 
     # Exit button
     tk.Button(root,
         text="Exit",
         width=15,
         command=root.destroy
-    ).grid(row=4, column=1, padx=5, pady=5)
+    ).grid(row=5, column=1, padx=5, pady=5)
 
     # Displays current list of items on program start
     refresh_item_list()
