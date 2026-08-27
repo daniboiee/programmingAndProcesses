@@ -1,4 +1,4 @@
-# Iteration 3
+# Final version
 
 # This file holds the two custom classes for this program
 

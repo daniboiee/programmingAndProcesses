@@ -1,4 +1,4 @@
-# Iteration 3
+# Final version
 
 # This file holds all GUI of the program
 
