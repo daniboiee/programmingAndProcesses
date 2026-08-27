@@ -24,7 +24,7 @@ def refresh_item_list():
 
             if loan is None:
                 status = "Available"
-            elif loan.is_overdue:
+            elif loan.is_overdue():
                 status = f"OVERDUE - {loan.borrower}"
             else:
                 status = f"Borrowed by {loan.borrower}"
@@ -51,7 +51,7 @@ def get_selected_item():
 
     return logic.find_item_by_id(item_id)
 
-# Centres a window over the main window
+# Centers a window over the main window
 def center_window(window, width, height):
     root.update_idletasks()
 
@@ -68,6 +68,20 @@ def shorten_text(text, length=35):
         return text[:length - 3] + "..."
 
     return text
+
+# Enables or disables item-related buttons
+def update_button_states():
+    if len(logic.items) == 0:
+        edit_button.config(state="disabled")
+        delete_button.config(state="disabled")
+        borrow_button.config(state="disabled")
+        return_button.config(state="disabled")
+
+    else:
+        edit_button.config(state="normal")
+        delete_button.config(state="normal")
+        borrow_button.config(state="normal")
+        return_button.config(state="normal")
 
 
 # Windows
@@ -104,6 +118,8 @@ def add_item_window():
     
         new_item = Item(item_id, name, category)
         logic.items.append(new_item)
+        refresh_item_list()
+        update_button_states()  # If no items existed previously, enable edit, delete, borrow, and return buttons
         logic.save_data()
     
         messagebox.showinfo(
@@ -331,7 +347,7 @@ def borrow_item_window():
 # Non-windows (don't have TopLevel)
 
 # Deletes the selected item after checking that it is not currently borrowed
-def delete_item():
+def on_delete_click():
     item = get_selected_item()
 
     if item is None:
@@ -353,6 +369,8 @@ def delete_item():
 
     if confirmation:
         logic.items.remove(item)
+        refresh_item_list()
+        update_button_states()  # If no items exist anymore, disable edit, delete, borrow, and return buttons
         logic.save_data()
 
         messagebox.showinfo(
@@ -364,7 +382,7 @@ def delete_item():
         refresh_item_list()
 
 # Returns the selected item after confirming its loan
-def return_item(): 
+def on_return_click(): 
     item = get_selected_item()
 
     if item is None:
@@ -392,7 +410,7 @@ def return_item():
     if confirmation:
         logic.return_item(item)
         logic.save_data()
-        
+
         messagebox.showinfo(
             "Returned",
             "The item has been successfully returned.",
@@ -405,6 +423,8 @@ def return_item():
 
 def start_gui():
     global root, item_list
+    global edit_button, delete_button, borrow_button, return_button
+
     root = tk.Tk()
     root.title("Equipment Tracker")
     root.geometry("520x450")
@@ -440,36 +460,37 @@ def start_gui():
 
     # Buttons
 
-    tk.Button(root,
+    add_item = tk.Button(root,
         text="Add Item",
         width=15,
-        command=add_item_window
-    ).grid(row=2, column=0, padx=5, pady=5)
+        command=add_item_window)
+    add_item.grid(row=2, column=0, padx=5, pady=5)
 
-    tk.Button(root,
+    edit_button = tk.Button(root,
         text="Edit Item",
         width=15,
-        command=edit_item_window
-    ).grid(row=2, column=1, padx=5, pady=5)
+        command=edit_item_window)
+    edit_button.grid(row=2, column=1, padx=5, pady=5)
 
-    tk.Button(root,
+    delete_button = tk.Button(root,
         text="Delete Item",
         width=15,
-        command=delete_item
-    ).grid(row=3, column=0, padx=5, pady=5)
+        command=on_delete_click)
+    delete_button.grid(row=3, column=0, padx=5, pady=5)
 
-    tk.Button(root,
+    borrow_button = tk.Button(root,
         text="Borrow Item",
         width=15,
-        command=borrow_item_window
-    ).grid(row=3, column=1, padx=5, pady=5)
+        command=borrow_item_window)
+    borrow_button.grid(row=3, column=1, padx=5, pady=5)
 
-    tk.Button(root,
+    return_button = tk.Button(root,
         text="Return Item",
         width=15,
-        command=return_item
-    ).grid(row=4, column=0, padx=5, pady=5)
+        command=on_return_click)
+    return_button.grid(row=4, column=0, padx=5, pady=5)
 
+    # Exit button
     tk.Button(root,
         text="Exit",
         width=15,
@@ -478,5 +499,7 @@ def start_gui():
 
     # Displays current list of items on program start
     refresh_item_list()
+    # Button states are enabled or disabled based on whether list is empty
+    update_button_states()
 
     root.mainloop()

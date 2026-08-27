@@ -56,12 +56,7 @@ def save_data():
             "item_id": loan.item.id,
             "borrower": loan.borrower,
             "borrow_date": loan.borrow_date.isoformat(),
-            "due_date": loan.due_date.isoformat(),
-            "return_date": (
-                loan.return_date.isoformat()
-                if loan.return_date is not None
-                else None
-            )
+            "due_date": loan.due_date.isoformat()
         })
 
     with open(file_path, "w") as file:
@@ -72,10 +67,11 @@ def load_data():
     global next_id
 
     # Check if the file is physically empty (0 bytes) to avoid JSONDecodeError
-    if os.path.getsize(file_path) == 0:
-        return
+    
 
     try:
+        if os.path.getsize(file_path) == 0:
+            return
         with open(file_path, "r") as file:
             data = json.load(file)
     except FileNotFoundError:
@@ -99,34 +95,13 @@ def load_data():
     # Recreate Loan objects from the saved dictionaries
     for loan_data in data.get("loans", []):
         item = find_item_by_id(loan_data["item_id"])
-
         if item is None:
             continue
 
-        borrow_date = datetime.datetime.fromisoformat(
-            loan_data["borrow_date"]
-        )
+        borrow_date = datetime.datetime.fromisoformat(loan_data["borrow_date"])
+        due_date = datetime.datetime.fromisoformat(loan_data["due_date"])
 
-        due_date = datetime.datetime.fromisoformat(
-            loan_data["due_date"]
-        )
-
-        if loan_data["return_date"] is None:
-            return_date = None
-        else:
-            return_date = datetime.datetime.fromisoformat(
-                loan_data["return_date"]
-            )
-
-        loan = Loan(
-            item,
-            loan_data["borrower"],
-            borrow_date,
-            due_date
-        )
-
-        loan.return_date = return_date
-
+        loan = Loan(item, loan_data["borrower"], borrow_date, due_date)
         loans.append(loan)
 
 # Returns an item by removing its active loan

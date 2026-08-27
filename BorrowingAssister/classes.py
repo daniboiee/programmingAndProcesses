@@ -15,7 +15,7 @@ class Item:
     # Finds and returns the item's current loan if it is borrowed
     def find_active_loan(self, loans):
         for loan in loans:
-            if loan.item == self and loan.return_date is None:
+            if loan.item == self:
                 return loan
 
         return None
@@ -28,18 +28,7 @@ class Loan:
         self.borrower = borrower
         self.borrow_date = borrow_date
         self.due_date = due_date
-        self.return_date = None
 
-    # Records the item as returned and prevents it from being returned twice
-    def return_item(self):
-        if self.return_date is not None:
-            return False
-
-        self.return_date = datetime.datetime.now()
-        return True
-
-    def is_overdue(self):    # Checks whether this loan is currently overdue.
-        if self.return_date is not None:
-            return False
-
+    # Checks whether this loan is currently overdue
+    def is_overdue(self):
         return datetime.datetime.now() > self.due_date
