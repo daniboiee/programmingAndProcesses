@@ -12,10 +12,6 @@ class Item:
         self.name = name
         self.category = category
 
-    # Returns the item's details as a formatted string
-    def get_details(self):
-        return f"{self.id}: {self.name} ({self.category})"
-
     # Finds and returns the item's current loan if it is borrowed
     def find_active_loan(self, loans):
         for loan in loans:
@@ -34,13 +30,6 @@ class Loan:
         self.due_date = due_date
         self.return_date = None
 
-    # Returns the loan's details as a formatted string
-    def get_details(self):
-        return (
-            f"{self.item.name} borrowed by {self.borrower}, "
-            f"due {self.due_date.strftime('%d/%m/%Y')}"
-        )
-
     # Records the item as returned and prevents it from being returned twice
     def return_item(self):
         if self.return_date is not None:
@@ -48,3 +37,9 @@ class Loan:
 
         self.return_date = datetime.datetime.now()
         return True
+
+    def is_overdue(self):    # Checks whether this loan is currently overdue.
+        if self.return_date is not None:
+            return False
+
+        return datetime.datetime.now() > self.due_date

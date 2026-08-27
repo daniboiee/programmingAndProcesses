@@ -2,6 +2,7 @@
 
 # This file holds the logic of the program
 
+import os
 import json
 import datetime
 
@@ -11,6 +12,7 @@ from classes import Item, Loan
 items = []
 loans = []
 next_id = 1
+file_path = "BorrowingAssister/data.json"   # Change to make program save to and load from a different file
 
 # General utility functions
 
@@ -62,15 +64,19 @@ def save_data():
             )
         })
 
-    with open("BorrowingAssister/data.json", "w") as file:
+    with open(file_path, "w") as file:
         json.dump(data, file, indent=4)
 
 # Loads items and loans from the JSON file when the program starts
 def load_data():
     global next_id
 
+    # Check if the file is physically empty (0 bytes) to avoid JSONDecodeError
+    if os.path.getsize(file_path) == 0:
+        return
+
     try:
-        with open("BorrowingAssister/data.json", "r") as file:
+        with open(file_path, "r") as file:
             data = json.load(file)
     except FileNotFoundError:
         return  # No file exists yet, so the program starts with empty lists
@@ -122,3 +128,13 @@ def load_data():
         loan.return_date = return_date
 
         loans.append(loan)
+
+# Returns an item by removing its active loan
+def return_item(item):
+    loan = item.find_active_loan(loans)
+
+    if loan is None:
+        return False
+
+    loans.remove(loan)
+    return True

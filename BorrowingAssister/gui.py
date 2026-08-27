@@ -24,12 +24,14 @@ def refresh_item_list():
 
             if loan is None:
                 status = "Available"
+            elif loan.is_overdue:
+                status = f"OVERDUE - {loan.borrower}"
             else:
                 status = f"Borrowed by {loan.borrower}"
 
             item_list.insert(
                 tk.END,
-                f"{item.id} | {item.name} | {item.category} | {status}"
+                f"{item.id} | {shorten_text(item.name)} | {shorten_text(item.category)} | {status}"
             )
 
 # Returns the item currently selected in the list
@@ -60,6 +62,13 @@ def center_window(window, width, height):
         f"{width}x{height}+{x}+{y}"
     )
 
+# Shortens text for display without changing the actual value
+def shorten_text(text, length=35):
+    if len(text) > length:
+        return text[:length - 3] + "..."
+
+    return text
+
 
 # Windows
 
@@ -72,8 +81,8 @@ def add_item_window():
     center_window(window, 265, 140)
 
     def add():
-        name = name_entry.get().strip()
-        category = category_entry.get().strip()
+        name = name_entry.get().strip().replace("\n", " ").replace("\r", " ")
+        category = category_entry.get().strip().replace("\n", " ").replace("\r", " ")
     
         if name == "":
             messagebox.showerror(
@@ -148,8 +157,8 @@ def edit_item_window():
     center_window(window, 290, 190)
 
     def save_changes():
-        new_name = name_entry.get().strip()
-        new_category = category_entry.get().strip()
+        new_name = name_entry.get().strip().replace("\n", " ").replace("\r", " ")
+        new_category = category_entry.get().strip().replace("\n", " ").replace("\r", " ")
 
         if new_name == "":
             messagebox.showerror(
@@ -373,7 +382,7 @@ def return_item():
 
     confirmation = messagebox.askyesno(
         "Return Item",
-        f"Item: {item.name}\n"
+        f"Item: {shorten_text(item.name, 50)}\n"
         f"Borrowed by: {loan.borrower}\n"
         f"Due: {loan.due_date.strftime('%d/%m/%Y')}\n\n"
         f"Return this item?",
@@ -381,15 +390,14 @@ def return_item():
     )
 
     if confirmation:
-        loan.return_item()
+        logic.return_item(item)
         logic.save_data()
-
+        
         messagebox.showinfo(
             "Returned",
-            "The loan has been successfully returned.",
+            "The item has been successfully returned.",
             parent=root
         )
-
         refresh_item_list()
 
 
