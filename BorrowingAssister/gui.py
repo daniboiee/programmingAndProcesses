@@ -95,6 +95,7 @@ def add_item_window():
     
         new_item = Item(item_id, name, category)
         logic.items.append(new_item)
+        logic.save_data()
     
         messagebox.showinfo(
             "Item added",
@@ -168,6 +169,7 @@ def edit_item_window():
 
         item.name = new_name
         item.category = new_category
+        logic.save_data()
 
         messagebox.showinfo(
             "Updated",
@@ -274,6 +276,7 @@ def borrow_item_window():
         )
 
         logic.loans.append(new_loan)
+        logic.save_data()
 
         messagebox.showinfo(
             "Borrowed",
@@ -341,6 +344,7 @@ def delete_item():
 
     if confirmation:
         logic.items.remove(item)
+        logic.save_data()
 
         messagebox.showinfo(
             "Deleted",
@@ -378,6 +382,7 @@ def return_item():
 
     if confirmation:
         loan.return_item()
+        logic.save_data()
 
         messagebox.showinfo(
             "Returned",
@@ -395,6 +400,7 @@ def start_gui():
     root = tk.Tk()
     root.title("Equipment Tracker")
     root.geometry("520x450")
+    root.resizable(False, False)
 
     # Displays the title of the application
     title_label = tk.Label(root,
