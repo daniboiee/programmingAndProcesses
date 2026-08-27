@@ -1,93 +1,26 @@
-# Iteration 2
+# Iteration 3
+
+# This file holds all GUI of the program
 
 import tkinter as tk
 from tkinter import messagebox
 import datetime
 
-# Classes
+from classes import Item, Loan
+import logic
 
-# Class that holds information about an item
-class Item:
-    # Example usage: item1 = Item("EQ001", "FX9860GII Calculator", "Calculator")
-    def __init__(self, id, name, category):
-        self.id = id
-        self.name = name
-        self.category = category
-
-    # Returns the item's details as a formatted string
-    def get_details(self):
-        return f"{self.id}: {self.name} ({self.category})"
-
-    # Finds and returns the item's current loan if it is borrowed
-    def find_active_loan(self, loans):
-        for loan in loans:
-            if loan.item == self and loan.return_date is None:
-                return loan
-
-        return None
-
-# Class that holds information about the loan of an item
-class Loan:
-    # Example usage: loan1 = Loan(item1, "James", datetime.datetime.now(), datetime.datetime(2026, 8, 31))
-    def __init__(self, item, borrower, borrow_date, due_date):
-        self.item = item
-        self.borrower = borrower
-        self.borrow_date = borrow_date
-        self.due_date = due_date
-        self.return_date = None
-
-    # Returns the loan's details as a formatted string
-    def get_details(self):
-        return (
-            f"{self.item.name} borrowed by {self.borrower}, "
-            f"due {self.due_date.strftime('%d/%m/%Y')}"
-        )
-
-    # Records the item as returned and prevents it from being returned twice
-    def return_item(self):
-        if self.return_date is not None:
-            return False
-
-        self.return_date = datetime.datetime.now()
-        return True
-
-# Containers for items and loans
-items = []
-loans = []
-
-
-# General utility functions
-
-# Generates the first unused equipment ID
-def generate_id():
-    number = 1      # Future version will not reuse deleted item IDs, but I need JSON for that
-
-    while True:
-        item_id = f"EQ{number:03d}" # Formats the number as a (minimum) three-digit ID, e.g. EQ001, EQ002, EQ010, EQ1234
-
-        if not any(item.id == item_id for item in items):
-            return item_id
-
-        number += 1
-
-# Finds and returns an item using its ID
-def find_item_by_id(item_id):
-    for item in items:
-        if item.id == item_id:
-            return item
-
-    return None
+# Utility functions for GUI-related things
 
 # Refreshes the item list shown in the main window
 def refresh_item_list():
     item_list.delete(0, tk.END)
 
-    if len(items) == 0:
+    if len(logic.items) == 0:
         item_list.insert(tk.END, "No items.")
 
     else:
-        for item in items:
-            loan = item.find_active_loan(loans)
+        for item in logic.items:
+            loan = item.find_active_loan(logic.loans)
 
             if loan is None:
                 status = "Available"
@@ -114,7 +47,7 @@ def get_selected_item():
 
     item_id = selected_text.split(" | ")[0] # Accesses the ID data stored in the string
 
-    return find_item_by_id(item_id)
+    return logic.find_item_by_id(item_id)
 
 # Centres a window over the main window
 def center_window(window, width, height):
@@ -158,10 +91,10 @@ def add_item_window():
             )
             return
     
-        item_id = generate_id()
+        item_id = logic.generate_id()
     
         new_item = Item(item_id, name, category)
-        items.append(new_item)
+        logic.items.append(new_item)
     
         messagebox.showinfo(
             "Item added",
@@ -282,7 +215,7 @@ def borrow_item_window():
     if item is None:
         return
 
-    if item.find_active_loan(loans) is not None:
+    if item.find_active_loan(logic.loans) is not None:
         messagebox.showerror(
             "Cannot borrow",
             "This item is already borrowed.",
@@ -340,7 +273,7 @@ def borrow_item_window():
             due_date
         )
 
-        loans.append(new_loan)
+        logic.loans.append(new_loan)
 
         messagebox.showinfo(
             "Borrowed",
@@ -381,7 +314,7 @@ def borrow_item_window():
         text="Cancel",
         command=window.destroy
     ).grid(row=3, column=1, padx=10, pady=20)
-    
+
 
 # Non-windows (don't have TopLevel)
 
@@ -392,7 +325,7 @@ def delete_item():
     if item is None:
         return
 
-    if item.find_active_loan(loans) is not None:
+    if item.find_active_loan(logic.loans) is not None:
         messagebox.showerror(
             "Cannot delete",
             "This item is currently borrowed.",
@@ -407,7 +340,7 @@ def delete_item():
     )
 
     if confirmation:
-        items.remove(item)
+        logic.items.remove(item)
 
         messagebox.showinfo(
             "Deleted",
@@ -424,7 +357,7 @@ def return_item():
     if item is None:
         return
 
-    loan = item.find_active_loan(loans)
+    loan = item.find_active_loan(logic.loans)
 
     if loan is None:
         messagebox.showerror(
@@ -457,77 +390,79 @@ def return_item():
 
 # Main window
 
-root = tk.Tk()
-root.title("Classroom Equipment Tracker")
-root.geometry("520x450")
+def start_gui():
+    global root, item_list
+    root = tk.Tk()
+    root.title("Equipment Tracker")
+    root.geometry("520x450")
 
-# Displays the title of the application
-title_label = tk.Label(root,
-    text="CLASSROOM EQUIPMENT TRACKER",
-    font=("Arial", 16)
-)
+    # Displays the title of the application
+    title_label = tk.Label(root,
+        text="Equipment Tracker",
+        font=("Arial", 16)
+    )
 
-title_label.grid(
-    row=0,
-    column=0,
-    columnspan=2,
-    pady=15
-)
+    title_label.grid(
+        row=0,
+        column=0,
+        columnspan=2,
+        pady=15
+    )
 
-# Displays the list of equipment items and their current status
-item_list = tk.Listbox(root,
-    width=80,
-    height=15
-)
+    # Displays the list of equipment items and their current status
+    item_list = tk.Listbox(root,
+        width=80,
+        height=15
+    )
 
-item_list.grid(
-    row=1,
-    column=0,
-    columnspan=2,
-    padx=15,
-    pady=10
-)
+    item_list.grid(
+        row=1,
+        column=0,
+        columnspan=2,
+        padx=15,
+        pady=10
+    )
 
 
-# Buttons
+    # Buttons
 
-tk.Button(root,
-    text="Add Item",
-    width=15,
-    command=add_item_window
-).grid(row=2, column=0, padx=5, pady=5)
+    tk.Button(root,
+        text="Add Item",
+        width=15,
+        command=add_item_window
+    ).grid(row=2, column=0, padx=5, pady=5)
 
-tk.Button(root,
-    text="Edit Item",
-    width=15,
-    command=edit_item_window
-).grid(row=2, column=1, padx=5, pady=5)
+    tk.Button(root,
+        text="Edit Item",
+        width=15,
+        command=edit_item_window
+    ).grid(row=2, column=1, padx=5, pady=5)
 
-tk.Button(root,
-    text="Delete Item",
-    width=15,
-    command=delete_item
-).grid(row=3, column=0, padx=5, pady=5)
+    tk.Button(root,
+        text="Delete Item",
+        width=15,
+        command=delete_item
+    ).grid(row=3, column=0, padx=5, pady=5)
 
-tk.Button(root,
-    text="Borrow Item",
-    width=15,
-    command=borrow_item_window
-).grid(row=3, column=1, padx=5, pady=5)
+    tk.Button(root,
+        text="Borrow Item",
+        width=15,
+        command=borrow_item_window
+    ).grid(row=3, column=1, padx=5, pady=5)
 
-tk.Button(root,
-    text="Return Item",
-    width=15,
-    command=return_item
-).grid(row=4, column=0, padx=5, pady=5)
+    tk.Button(root,
+        text="Return Item",
+        width=15,
+        command=return_item
+    ).grid(row=4, column=0, padx=5, pady=5)
 
-tk.Button(root,
-    text="Exit",
-    width=15,
-    command=root.destroy
-).grid(row=4, column=1, padx=5, pady=5)
+    tk.Button(root,
+        text="Exit",
+        width=15,
+        command=root.destroy
+    ).grid(row=4, column=1, padx=5, pady=5)
 
-# Displays current list of items on program start
-refresh_item_list()
+    # Displays current list of items on program start
+    refresh_item_list()
 
-root.mainloop()
+    root.mainloop()
